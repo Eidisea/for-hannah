@@ -957,6 +957,20 @@ function startLevel(k,mode){
 }
 function itemById(k,id){return LEVELS[k].items.find(x=>x.id===id)}
 
+/* Keep the progress bar + new question just below the sticky header instead of jumping to the page top */
+function keepInView(k){
+  const target=document.querySelector('#p-'+k+' .qprog')||document.querySelector('#p-'+k+' .card');
+  if(!target) return;
+  const headerH=document.querySelector('header').getBoundingClientRect().height;
+  const top=target.getBoundingClientRect().top;
+  const card=document.querySelector('#p-'+k+' .card');
+  const bottom=card?card.getBoundingClientRect().bottom:top;
+  // Only scroll when the question isn't already comfortably visible
+  if(top<headerH+4 || bottom>window.innerHeight){
+    window.scrollTo({top:window.scrollY+top-headerH-10,behavior:'instant'});
+  }
+}
+
 function renderLevel(k){
   const L=LEVELS[k], st=S[k], el=document.getElementById('p-'+k);
   const done=Object.keys(st.results).length, correct=Object.values(st.results).filter(Boolean).length;
@@ -1035,9 +1049,9 @@ function feedback(k,ok,answerText,exp,extra){
 
 function wireQuestion(k){
   const st=S[k], it=itemById(k,st.queue[st.pos]);
-  const next=()=>{ if(!st.answered) return; st.pos++; st.answered=false; renderLevel(k); window.scrollTo({top:0,behavior:'smooth'}); };
+  const next=()=>{ if(!st.answered) return; st.pos++; st.answered=false; renderLevel(k); keepInView(k); };
   document.getElementById('next-'+k).onclick=next;
-  document.getElementById('skip-'+k).onclick=()=>{ st.queue.push(st.queue.splice(st.pos,1)[0]); renderLevel(k); };
+  document.getElementById('skip-'+k).onclick=()=>{ st.queue.push(st.queue.splice(st.pos,1)[0]); renderLevel(k); keepInView(k); };
   if(k==='mcq'){
     const btns=[...document.querySelectorAll('#ans-mcq .opt')];
     btns.forEach(b=>b.onclick=()=>{
