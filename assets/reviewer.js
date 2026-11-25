@@ -13,27 +13,52 @@ document.getElementById('subjTitle').textContent = META.title;
 document.getElementById('subjSub').textContent = META.subtitle || '';
 document.getElementById('subjFolder').classList.add('f-' + (META.folder || 'pastel-pinstripe'));
 document.getElementById('studyGrid').innerHTML = SUBJECT.studyHTML;
+/* Phone-friendly tables: remember each column's heading on its cells */
+document.querySelectorAll('#studyGrid .tbl').forEach(t=>{
+  const head=t.querySelector('tr'); if(!head||!head.querySelector('th')) return;
+  head.classList.add('tbl-head');
+  const labels=[...head.children].map(th=>th.textContent.trim());
+  [...t.querySelectorAll('tr')].slice(1).forEach(tr=>[...tr.children].forEach((td,i)=>{ if(labels[i]) td.dataset.label=labels[i]; }));
+});
 document.getElementById('footSrc').textContent = META.source || META.title;
 
 /* ---------------- Build question objects ---------------- */
 const LEVELS = {
-  mcq:{name:"Level 1 · Multiple Choice",short:"MCQ",accent:"var(--lav)",pill:"p-lav",desc:"Core concept checks with 4 options. Use keys 1–4 to answer and Enter for next.",
+  mcq:{type:"mcq",name:"Level 1 · Multiple Choice",short:"MCQ",accent:"var(--lav)",pill:"p-lav",desc:"Core concept checks with 4 options. Use keys 1–4 to answer and Enter for next.",
        items:MCQ.map((r,i)=>({id:"m"+i,topic:r[0],q:r[1],opts:r[2],exp:r[3]}))},
-  id:{name:"Level 2 · Identification",short:"ID",accent:"var(--sage)",pill:"p-sage",desc:"Type the key term, enzyme, drug or mnemonic. Small typos are forgiven.",
+  id:{type:"id",name:"Level 2 · Identification",short:"ID",accent:"var(--sage)",pill:"p-sage",desc:"Type the key term, enzyme, drug or mnemonic. Small typos are forgiven.",
       items:IDQ.map((r,i)=>({id:"i"+i,topic:r[0],q:r[1],acc:r[2],disp:r[3],exp:r[4]}))},
-  tf:{name:"Level 3 · True or False",short:"T/F",accent:"var(--peach)",pill:"p-peach",desc:"Nuanced statements on clinical exceptions and withdrawal rationales. Press T or F.",
+  tf:{type:"tf",name:"Level 3 · True or False",short:"T/F",accent:"var(--peach)",pill:"p-peach",desc:"Nuanced statements on clinical exceptions and withdrawal rationales. Press T or F.",
       items:TFQ.map((r,i)=>({id:"t"+i,topic:r[0],q:r[1],ans:r[2],exp:r[3]}))}
 };
 /* Drop quiz levels this subject has no questions for, and hide their tabs */
 for(const k of Object.keys(LEVELS)){
   if(!LEVELS[k].items.length){ delete LEVELS[k]; const t=document.querySelector('.tab[data-tab="'+k+'"]'); if(t) t.hidden=true; }
 }
-if(Object.keys(LEVELS).length===1 && LEVELS.mcq){
-  LEVELS.mcq.name="Practice Quiz · Multiple Choice";
-  LEVELS.mcq.desc="Pure multiple choice, grouped by section. Use keys 1–4 to answer and Enter for next.";
-  const t=document.querySelector('.tab[data-tab="mcq"]');
-  if(t) t.innerHTML='<span class="dot" style="background:var(--lav)"></span>Multiple Choice <span class="badge" id="b-mcq">–</span>';
+/* Optional: split the MCQs into separate quiz tabs, one per topic group.
+   SUBJECT.MCQ_SETS = [{key:"ab", name:"Antibacterials", group:"Antibacterials", c:"lav"}, ...] */
+if(SUBJECT.MCQ_SETS && LEVELS.mcq){
+  const all = LEVELS.mcq.items;
+  delete LEVELS.mcq;
+  const oldTab = document.querySelector('.tab[data-tab="mcq"]'); if(oldTab) oldTab.hidden = true;
+  const nav = document.querySelector('nav.tabs'), before = document.querySelector('.tab[data-tab="id"]');
+  const main = document.querySelector('main'), loadMsg = document.getElementById('loadMsg');
+  SUBJECT.MCQ_SETS.forEach((set, i) => {
+    const items = all.filter(x => (TOPICS[x.topic] || {}).g === set.group);
+    if(!items.length) return;
+    const key = 'mcq-' + set.key, c = set.c || ['lav','sage','peach','sky','rose','butter'][i % 6];
+    LEVELS[key] = {type:"mcq", name:`Quiz ${i+1} · ${set.name}`, short:"MCQ", accent:`var(--${c})`, pill:`p-${c}`,
+      desc:`Multiple choice on ${set.name}. Use keys 1–4 to answer and Enter for next.`, items};
+    const tab = document.createElement('button');
+    tab.className = 'tab'; tab.setAttribute('role','tab'); tab.dataset.tab = key; tab.setAttribute('aria-selected','false');
+    tab.innerHTML = `<span class="dot" style="background:var(--${c})"></span>${i+1} · ${set.name} <span class="badge" id="b-${key}">–</span>`;
+    nav.insertBefore(tab, before);
+    const panel = document.createElement('section');
+    panel.className = 'panel'; panel.id = 'p-' + key;
+    main.insertBefore(panel, loadMsg);
+  });
 }
+const T = k => LEVELS[k].type;   // question type of a quiz tab: "mcq" | "id" | "tf"
 const TOTAL = Object.values(LEVELS).reduce((a,l)=>a+l.items.length,0);
 let mastered = new Set(store.get(K('mastered'),[]));
 let best = store.get(K('best'),{});
@@ -89,6 +114,7 @@ function renderLevel(k){
   const done=Object.keys(st.results).length, correct=Object.values(st.results).filter(Boolean).length;
   const total=st.queue.length;
   const topicsHere=[...new Set(L.items.map(x=>x.topic))];
+  const groupsHere=GROUPS.filter(g=>topicsHere.some(t=>TOPICS[t].g===g));
   const head=`
   <div class="intro">
     <div style="flex:1;min-width:240px">
@@ -100,8 +126,8 @@ function renderLevel(k){
   <div class="qtop">
     <select class="sel" id="sel-${k}" aria-label="Filter by topic">
       <option value="all">All topics (${L.items.length})</option>
-      ${GROUPS.length
-        ? GROUPS.map(g=>{const ts=topicsHere.filter(t=>TOPICS[t].g===g); if(!ts.length) return '';
+      ${groupsHere.length>1
+        ? groupsHere.map(g=>{const ts=topicsHere.filter(t=>TOPICS[t].g===g); if(!ts.length) return '';
             const gv='g:'+g, gn=L.items.filter(x=>inTopic(x,gv)).length;
             return `<optgroup label="${g}"><option value="${gv}" ${st.topic===gv?'selected':''}>All ${g} (${gn})</option>`+
               ts.map(t=>`<option value="${t}" ${st.topic===t?'selected':''}>${TOPICS[t].n} (${L.items.filter(x=>x.topic===t).length})</option>`).join('')+'</optgroup>';}).join('')
@@ -127,7 +153,7 @@ function renderLevel(k){
       <p class="qtext">${esc(it.q)}</p>
       <div id="ans-${k}">${answerHTML(k,it)}</div>
       <div id="fb-${k}" aria-live="polite"></div>
-      <div class="qnav"><span class="hint">${k==='mcq'?'<kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next':k==='tf'?'<kbd>T</kbd> / <kbd>F</kbd> answer · <kbd>Enter</kbd> next':'<kbd>Enter</kbd> to check / next'}</span>
+      <div class="qnav"><span class="hint">${T(k)==='mcq'?'<kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next':T(k)==='tf'?'<kbd>T</kbd> / <kbd>F</kbd> answer · <kbd>Enter</kbd> next':'<kbd>Enter</kbd> to check / next'}</span>
         <div style="display:flex;gap:8px"><button class="btn soft" id="skip-${k}">Skip</button><button class="btn" id="next-${k}" disabled>Next →</button></div></div>
     </div>`;
   }
@@ -138,11 +164,11 @@ function renderLevel(k){
 }
 
 function answerHTML(k,it){
-  if(k==='mcq'){
+  if(T(k)==='mcq'){
     if(!S[k].optOrder[it.id]) S[k].optOrder[it.id]=shuffle([0,1,2,3]);
     return `<div class="opts">${S[k].optOrder[it.id].map((oi,n)=>`<button class="opt" data-oi="${oi}"><span class="k">${"ABCD"[n]}</span><span>${esc(it.opts[oi])}</span></button>`).join('')}</div>`;
   }
-  if(k==='tf') return `<div class="tf"><button class="opt" data-v="1">🌿 True</button><button class="opt" data-v="0">🍑 False</button></div>`;
+  if(T(k)==='tf') return `<div class="tf"><button class="opt" data-v="1">🌿 True</button><button class="opt" data-v="0">🍑 False</button></div>`;
   return `<form class="idrow" id="idf" autocomplete="off"><input id="idin" placeholder="Type your answer…" aria-label="Your answer" autocomplete="off" spellcheck="false"><button class="btn sage" type="submit">Check</button></form>`;
 }
 
@@ -170,16 +196,16 @@ function wireQuestion(k){
   const next=()=>{ if(!st.answered) return; st.pos++; st.answered=false; renderLevel(k); keepInView(k); };
   document.getElementById('next-'+k).onclick=next;
   document.getElementById('skip-'+k).onclick=()=>{ st.queue.push(st.queue.splice(st.pos,1)[0]); renderLevel(k); keepInView(k); };
-  if(k==='mcq'){
-    const btns=[...document.querySelectorAll('#ans-mcq .opt')];
+  if(T(k)==='mcq'){
+    const btns=[...document.querySelectorAll('#ans-'+k+' .opt')];
     btns.forEach(b=>b.onclick=()=>{
       if(st.answered)return;
       const oi=+b.dataset.oi, ok=oi===0;
       btns.forEach(x=>{x.disabled=true; const xi=+x.dataset.oi; if(xi===0)x.classList.add('ok'); else if(x===b)x.classList.add('no'); else x.classList.add('dim');});
       record(k,it,ok); feedback(k,ok,it.opts[0],it.exp);
     });
-  } else if(k==='tf'){
-    const btns=[...document.querySelectorAll('#ans-tf .opt')];
+  } else if(T(k)==='tf'){
+    const btns=[...document.querySelectorAll('#ans-'+k+' .opt')];
     btns.forEach(b=>b.onclick=()=>{
       if(st.answered)return;
       const v=b.dataset.v==='1', ok=v===it.ans;
@@ -200,7 +226,7 @@ function wireQuestion(k){
       const ov=document.getElementById('override');
       if(ov) ov.onclick=()=>{ st.results[it.id]=true; mastered.add(it.id); store.set(K('mastered'),[...mastered]); updateMastery();
         inp.classList.remove('no'); inp.classList.add('ok'); feedback(k,true,'',it.exp,`<p style="margin-top:8px">Counted as correct ✓ (expected: <span class="ans">${esc(it.disp)}</span>)</p>`);
-        const stats=document.querySelectorAll('#p-id .stat b'); const done=Object.keys(st.results).length,c=Object.values(st.results).filter(Boolean).length; stats[0].textContent=c; stats[1].textContent=done-c; };
+        const stats=document.querySelectorAll('#p-'+k+' .stat b'); const done=Object.keys(st.results).length,c=Object.values(st.results).filter(Boolean).length; stats[0].textContent=c; stats[1].textContent=done-c; };
     };
   }
 }
@@ -218,7 +244,7 @@ function summaryHTML(k){
   const ring=`<div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="62" fill="none" stroke="var(--surface-2)" stroke-width="14"/>
     <circle cx="75" cy="75" r="62" fill="none" stroke="${L.accent}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" id="ringArc"/></svg>
     <div class="v"><div><b>${pct}%</b><small>${correct} / ${total}</small></div></div></div>`;
-  const list=missed.map(id=>{const it=itemById(k,id);const a=k==='mcq'?it.opts[0]:k==='tf'?(it.ans?'True':'False'):it.disp;
+  const list=missed.map(id=>{const it=itemById(k,id);const a=T(k)==='mcq'?it.opts[0]:T(k)==='tf'?(it.ans?'True':'False'):it.disp;
     return `<div class="miss">${topicPill(it.topic)}<div style="margin-top:6px"><b>${esc(it.q)}</b></div><div style="margin-top:4px">→ <span class="a">${esc(a)}</span></div><div class="note" style="margin-top:4px">${esc(it.exp)}</div></div>`}).join('');
   return `<div class="card" style="--accent:${L.accent}">
     <div class="sum">${ring}<div><span class="pill ${L.pill}">${st.mode==='mistakes'?'Mistakes drill complete':'Set complete'}</span><h2 style="margin-top:6px">${msg[0]}</h2><p style="margin:0;color:var(--muted)">${msg[1]}${skipped.length?` (${skipped.length} unanswered)`:''}</p>
@@ -248,12 +274,12 @@ document.addEventListener('keydown',e=>{
   const k=currentTab; if(!LEVELS[k]) return;
   if(e.target.tagName==='SELECT') return;
   const st=S[k]; if(st.pos>=st.queue.length) return;
-  if(k==='id') return; // form handles Enter
+  if(T(k)==='id') return; // form handles Enter
   if(e.key==='Enter'&&st.answered){e.preventDefault();document.getElementById('next-'+k).click();return;}
   if(st.answered) return;
-  if(k==='mcq'){const map={'1':0,'2':1,'3':2,'4':3,'a':0,'b':1,'c':2,'d':3};const n=map[e.key.toLowerCase()];
-    if(n!=null){const b=document.querySelectorAll('#ans-mcq .opt')[n]; if(b)b.click();}}
-  if(k==='tf'){const key=e.key.toLowerCase(); if(key==='t')document.querySelector('#ans-tf .opt[data-v="1"]').click(); if(key==='f')document.querySelector('#ans-tf .opt[data-v="0"]').click();}
+  if(T(k)==='mcq'){const map={'1':0,'2':1,'3':2,'4':3,'a':0,'b':1,'c':2,'d':3};const n=map[e.key.toLowerCase()];
+    if(n!=null){const b=document.querySelectorAll('#ans-'+k+' .opt')[n]; if(b)b.click();}}
+  if(T(k)==='tf'){const key=e.key.toLowerCase(); if(key==='t')document.querySelector('#ans-'+k+' .opt[data-v="1"]').click(); if(key==='f')document.querySelector('#ans-'+k+' .opt[data-v="0"]').click();}
 });
 
 /* ---------------- Tabs ---------------- */
@@ -264,6 +290,7 @@ function showTab(t){
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
   if(LEVELS[t] && !S[t].queue.length) startLevel(t,'all');
   store.set(K('tab'),t);
+  const sel=document.querySelector('.tab[data-tab="'+t+'"]'); if(sel&&sel.scrollIntoView) sel.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{showTab(b.dataset.tab);window.scrollTo({top:0})});
 
@@ -278,7 +305,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{showTab(b.dataset.ta
     chips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===b));
     const t=b.dataset.t; document.querySelectorAll('#studyGrid .study').forEach(c=>c.classList.toggle('hidden',t!=='all'&&!c.dataset.topic.split(' ').includes(t)));};
   if(!document.getElementById('flips')||!document.getElementById('pearls')) return;
-  document.getElementById('flips').innerHTML=FLIPS.map(f=>`<button class="flip" aria-label="Mnemonic ${f[0]}: tap to reveal"><div class="in"><div class="f bg-${f[3]}"><span class="mn">${f[0]}</span><small>${f[1]}</small></div><div class="b">${f[2]}</div></div></button>`).join('');
+  document.getElementById('flips').innerHTML=FLIPS.map(f=>`<button class="flip" aria-label="Mnemonic ${f[0]}: tap to reveal"><div class="in"><div class="f bg-${f[3]}"><span class="mn">${f[0]}</span><small>${f[1]}</small></div><div class="b"><div><span>${f[2]}</span></div></div></div></button>`).join('');
   document.getElementById('flips').onclick=e=>{const b=e.target.closest('.flip');if(b)b.classList.toggle('on')};
   document.getElementById('pearls').innerHTML=PEARLS.map(p=>`<div class="pearl"><span class="ic">${p[0]}</span><span>${p[1]}</span></div>`).join('');
 })();

@@ -250,3 +250,44 @@ nav.tabs{padding:6px 6px 14px;margin:0 -6px}
 .tab[hidden]{display:none}
 .chip-group{flex-basis:100%;font-family:var(--hand);font-size:1.15rem;color:var(--muted);margin:8px 0 -2px 4px}
 .chip-group::before{content:"✿ "}
+
+/* ============================================================
+   Phone fixes
+   ============================================================ */
+/* Card titles: normal text flow so long titles wrap instead of widening the page */
+.study h3{display:block}
+.study h3 .num{display:inline-grid;vertical-align:middle;margin:-4px 8px 0 0}
+.study h3 .pill{vertical-align:middle;margin-left:4px}
+/* Flip-card backs: normal text flow (bold letters stay inline) */
+.flip .b{display:block;font-size:.8rem}
+.flip .b > div{min-height:100%;display:flex;align-items:center}
+.flip .b > div > span{display:block}
+@media(max-width:620px){
+  .flips{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .flip{height:200px}
+  .flip .f .mn{font-size:1.4rem;word-break:break-word;text-align:center}
+}
+/* Tables stack into labelled rows on phones */
+@media(max-width:620px){
+  .tbl-wrap{overflow:visible}
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr.tbl-head{display:none}
+  .tbl tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+  .tbl tr:last-child{border-bottom:0}
+  .tbl td{border:0;padding:2px 0}
+  .tbl td:first-child{font-family:var(--hand);font-size:1.2rem;line-height:1.15;margin-bottom:4px}
+  .tbl td:first-child b{font-weight:400}
+  .tbl td[data-label]:not(:first-child)::before{content:attr(data-label);display:block;font-family:var(--hand);font-size:.95rem;color:var(--muted);margin-top:4px}
+}
+/* Tab bar: scrollable on phones, with a soft fade hinting there is more */
+@media(max-width:620px){
+  .tab-sep{display:none}
+  nav.tabs{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:40px}
+  .tab{font-size:1.05rem;padding:6px 13px}
+  .back span{display:none}
+  .mini-folder{width:38px;height:32px}
+  .brand h1{font-size:1.6rem}
+}
+/* Topic menu never wider than the screen (long section names get trimmed) */
+.sel{max-width:100%;min-width:0;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+@media(max-width:620px){.qtop .sel{flex:1 1 100%}}

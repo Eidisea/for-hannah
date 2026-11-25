@@ -4,7 +4,7 @@
 window.SUBJECT = (function(){
 
 /* ---------------- Sections (topics), grouped into the 3 parts ---------------- */
-const AB = "Antibacterials", AV = "Antiprotozoals–Antivirals", CA = "Anticancer Drugs";
+const AB = "Antibacterials", AV = "Antiprotozoals–Antivirals", CA = "AntiCA Drugs";
 const TOPICS = {
   defs:     {n:"Definition of terms",                 c:"lav",    g:AB},
   statcid:  {n:"Bacteriostatic vs bactericidal",      c:"sky",    g:AB},
@@ -545,5 +545,12 @@ const STUDY_HTML = `
 </article>
 `;
 
-return { id:"pcol2", TOPICS, MCQ, FLIPS, PEARLS, studyHTML: STUDY_HTML };
+/* Three separate multiple-choice quizzes, one per part */
+const MCQ_SETS = [
+  {key:"ab", name:"Antibacterials",            group:AB, c:"lav"},
+  {key:"av", name:"Antiprotozoals–Antivirals", group:AV, c:"sage"},
+  {key:"ca", name:"AntiCA Drugs",              group:CA, c:"peach"}
+];
+
+return { id:"pcol2", TOPICS, MCQ, MCQ_SETS, FLIPS, PEARLS, studyHTML: STUDY_HTML };
 })();
