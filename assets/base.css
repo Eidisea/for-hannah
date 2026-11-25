@@ -1,0 +1,66 @@
+/* Shared theme tokens + base styles for every page */
+:root{
+  --bg:#fbf7f1; --surface:#ffffff; --surface-2:#f6efe6; --line:#ece3d6;
+  --ink:#3d3a4a; --muted:#7a7489;
+  --sage:#a8c3a0; --sage-d:#557d50; --sage-t:#e8f1e3;
+  --lav:#c9b8e8;  --lav-d:#6f55ad;  --lav-t:#efe9f9;
+  --peach:#f6c3a5;--peach-d:#b9643a;--peach-t:#fdeee4;
+  --rose:#f2b6c1; --rose-d:#b84a63; --rose-t:#fce8ec;
+  --butter:#f5e3a3;--butter-d:#8f7420;--butter-t:#fdf6dc;
+  --sky:#b8d8e8;  --sky-d:#3d7894;  --sky-t:#e6f2f8;
+  --ok-bg:#e3f1de; --ok-bd:#7fb176; --ok-ink:#3e6b37;
+  --no-bg:#fbe1e4; --no-bd:#d97a8a; --no-ink:#9c3448;
+  --shadow:0 6px 22px rgba(90,70,110,.09);
+  --shadow-lg:0 14px 40px rgba(90,70,110,.14);
+  --r:16px; --r-lg:24px;
+  --head:"Fredoka","Nunito",system-ui,sans-serif;
+  --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+:root[data-theme="dark"]{
+  --bg:#1d1a24; --surface:#282331; --surface-2:#312a3c; --line:#3d3549;
+  --ink:#f1ebf5; --muted:#b3a9c0;
+  --sage:#8fb287; --sage-d:#b7d9ae; --sage-t:#2c3a2e;
+  --lav:#a993d6;  --lav-d:#d3c4f5;  --lav-t:#352c48;
+  --peach:#e0a582;--peach-d:#f6c8ab;--peach-t:#40302a;
+  --rose:#dc93a2; --rose-d:#f5bac6; --rose-t:#422a33;
+  --butter:#d9c47b;--butter-d:#f0dea0;--butter-t:#3c3524;
+  --sky:#8fbdd4;  --sky-d:#bfe0f0;  --sky-t:#24343e;
+  --ok-bg:#28402a; --ok-bd:#6fa866; --ok-ink:#bfe6b6;
+  --no-bg:#4a2730; --no-bd:#d0778a; --no-ink:#f8c2cd;
+  --shadow:0 6px 22px rgba(0,0,0,.28);
+  --shadow-lg:0 14px 40px rgba(0,0,0,.4);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1a24; --surface:#282331; --surface-2:#312a3c; --line:#3d3549;
+    --ink:#f1ebf5; --muted:#b3a9c0;
+    --sage:#8fb287; --sage-d:#b7d9ae; --sage-t:#2c3a2e;
+    --lav:#a993d6;  --lav-d:#d3c4f5;  --lav-t:#352c48;
+    --peach:#e0a582;--peach-d:#f6c8ab;--peach-t:#40302a;
+    --rose:#dc93a2; --rose-d:#f5bac6; --rose-t:#422a33;
+    --butter:#d9c47b;--butter-d:#f0dea0;--butter-t:#3c3524;
+    --sky:#8fbdd4;  --sky-d:#bfe0f0;  --sky-t:#24343e;
+    --ok-bg:#28402a; --ok-bd:#6fa866; --ok-ink:#bfe6b6;
+    --no-bg:#4a2730; --no-bd:#d0778a; --no-ink:#f8c2cd;
+    --shadow:0 6px 22px rgba(0,0,0,.28);
+    --shadow-lg:0 14px 40px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  background-image:radial-gradient(circle at 8% 0%,var(--lav-t) 0,transparent 32%),radial-gradient(circle at 100% 18%,var(--peach-t) 0,transparent 30%),radial-gradient(circle at 40% 100%,var(--sage-t) 0,transparent 35%);
+  background-attachment:fixed;transition:background-color .3s,color .3s;min-height:100vh}
+h1,h2,h3,h4{font-family:var(--head);font-weight:600;line-height:1.2;margin:0}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--lav);outline-offset:2px;border-radius:10px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+
+/* Theme toggle */
+.theme-btn{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;transition:transform .25s}
+.theme-btn:hover{transform:rotate(-15deg) scale(1.06)}
+.theme-btn svg{width:22px;height:22px}
+.sun{display:none}
+:root[data-theme="dark"] .sun{display:block} :root[data-theme="dark"] .moon{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sun{display:block} :root:not([data-theme="light"]) .moon{display:none}}
