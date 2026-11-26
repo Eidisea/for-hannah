@@ -12,11 +12,11 @@
 <style>
 :root{--hand:"Gochi Hand","Comic Sans MS","Segoe Print",cursive}
 .home-top{position:fixed;top:16px;right:16px;z-index:30}
-.home{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;max-width:1240px;margin:0 auto;padding:24px 24px 40px;min-height:100vh;align-items:start}
+.home{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px;max-width:1400px;margin:0 auto;padding:24px 24px 24px;align-items:start}
 @media(max-width:900px){.home{grid-template-columns:1fr;padding:16px 16px 32px;gap:8px}}
 
 /* ---------- Greeting side ---------- */
-.hello{position:sticky;top:24px;min-height:calc(100vh - 48px);display:flex;flex-direction:column;justify-content:center;padding:70px 40px;border-radius:32px;
+.hello{position:sticky;top:24px;min-height:calc(100vh - 140px);display:flex;flex-direction:column;justify-content:center;padding:40px 36px;border-radius:32px;
   background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;isolation:isolate}
 .hello::before{content:"";position:absolute;inset:0;z-index:-2;opacity:.55;
   background-image:radial-gradient(var(--line) 1.2px,transparent 1.3px);background-size:22px 22px}
@@ -30,7 +30,7 @@
 @media(max-width:620px){.dd.opt{display:none}}
 
 .kicker{font-family:var(--hand);font-size:1.25rem;color:var(--muted);margin:0 0 4px;transform:rotate(-2deg);display:inline-block}
-.hi{font-family:var(--hand);font-weight:400;font-size:clamp(4rem,9vw,7.6rem);line-height:.95;margin:0;letter-spacing:1px;color:var(--ink)}
+.hi{font-family:var(--hand);font-weight:400;font-size:clamp(3.2rem,5.4vw,5.6rem);line-height:.95;margin:0;letter-spacing:1px;color:var(--ink)}
 .hi .name{position:relative;display:inline-block;color:var(--rose-d)}
 .hi .name svg{position:absolute;left:-9%;top:-14%;width:118%;height:132%;overflow:visible;pointer-events:none}
 .hi .name path{fill:none;stroke:var(--rose);stroke-width:3.2;stroke-linecap:round;stroke-dasharray:640;stroke-dashoffset:640;animation:draw 1.4s .4s ease forwards}
@@ -38,30 +38,30 @@
 @keyframes draw{to{stroke-dashoffset:0}}
 @keyframes wave{0%,60%,100%{transform:rotate(0)}10%,30%{transform:rotate(14deg)}20%,40%{transform:rotate(-8deg)}}
 
-.tiles{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 26px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 22px}
 .tiles span{font-family:var(--body);font-weight:800;font-size:1.02rem;background:#fff;color:#2c2a33;padding:4px 10px;border-radius:3px;
   outline:2px solid var(--rose);outline-offset:4px;transform:rotate(var(--r));box-shadow:0 2px 0 rgba(0,0,0,.08)}
 :root[data-theme="dark"] .tiles span{background:#f7f2ea}
 
 /* Note card (cream card, blue frame, chunky marker text, yellow stars) */
-.note{position:relative;max-width:440px;background:#fbf4dd;border:7px solid #8eaed6;border-radius:6px;padding:22px 24px 18px;transform:rotate(-1.5deg);box-shadow:0 10px 26px rgba(80,90,130,.15)}
+.note{position:relative;max-width:440px;background:#fbf4dd;border:7px solid #8eaed6;border-radius:6px;padding:16px 20px 13px;transform:rotate(-1.5deg);box-shadow:0 10px 26px rgba(80,90,130,.15)}
 .note::before{content:"";position:absolute;top:-16px;left:50%;width:96px;height:26px;transform:translateX(-50%) rotate(3deg);background:rgba(242,182,193,.75);border-radius:2px}
 .note small{display:block;font-family:var(--hand);font-size:1rem;color:#7d7280;margin-bottom:2px}
-.note p{margin:0;font-family:var(--hand);font-size:clamp(1.6rem,3.2vw,2.15rem);line-height:1.12;color:#25222b;min-height:2.3em;transition:opacity .25s}
+.note p{margin:0;font-family:var(--hand);font-size:clamp(1.35rem,2vw,1.8rem);line-height:1.12;color:#25222b;min-height:2.3em;transition:opacity .25s}
 .note .ystar{position:absolute;width:62px;opacity:.85;z-index:0;pointer-events:none}
 .note p,.note small,.note button{position:relative;z-index:1}
 .note button{margin-top:10px;border:0;background:none;font-family:var(--hand);font-size:1.05rem;color:#5c7fae;padding:2px 0;text-decoration:underline wavy rgba(92,127,174,.5);text-underline-offset:4px}
 .note button:hover{color:var(--rose-d)}
-.hello-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+.hello-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 .hello-stats span{font-size:.85rem;font-weight:800;padding:6px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line)}
 
 /* ---------- Folder shelf ---------- */
-.shelf{padding:40px 8px 20px}
+.shelf{padding:26px 8px 16px}
 @media(max-width:900px){.shelf{padding:22px 0 10px}}
-.shelf-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 6px 26px}
-.shelf-head h2{font-family:var(--hand);font-weight:400;font-size:2.6rem;line-height:1}
+.shelf-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 6px 18px}
+.shelf-head h2{font-family:var(--hand);font-weight:400;font-size:2.2rem;line-height:1}
 .shelf-head .hand{font-family:var(--hand);color:var(--muted);font-size:1.15rem}
-.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:34px 26px}
+.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,215px),1fr));gap:26px 20px}
 @media(max-width:900px){.folders{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.folders{grid-template-columns:1fr;gap:30px}}
 
