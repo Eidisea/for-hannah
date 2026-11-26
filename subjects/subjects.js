@@ -1,7 +1,7 @@
 /* ============================================================
    Hannah's folders: one entry per subject, shown on the home page.
    To add a subject:
-     1. Create subjects/<id>.js (copy the shape of pcol1.js or pcol2.js)
+     1. Create subjects/<id>.js (copy the shape of pcol1.js, pcol2.js or cp1.js)
      2. Add an entry below with the same id
    ------------------------------------------------------------
    folder  = pattern style. Pick one of:
@@ -9,6 +9,7 @@
              "sky-airmail" "olive-awning" "pink-damask" "peony" "lilac-dots"
    doodle  = little drawing on the folder (optional). Pick one of:
              "dragonfly" "ducks" "stamp" "daisy" "stars" "cat" "heart" or ""
+   parts   = extra data files loaded before subjects/<id>.js (optional), e.g. ["cp1/aki"]
    ============================================================ */
 window.SUBJECTS = [
   {
@@ -28,6 +29,16 @@ window.SUBJECTS = [
     folder: "peony",
     doodle: "ducks",
     total: 144
+  },
+  {
+    id: "cp1",
+    title: "CP1",
+    subtitle: "Finals · Acid-Base · AKI · CKD",
+    source: "CP1 Lec Final Notes (Luayon): Acid-Base & AKI, CKD",
+    folder: "sky-airmail",
+    doodle: "stamp",
+    total: 300,
+    parts: ["cp1/acid-base", "cp1/aki", "cp1/ckd"]   // question files loaded before subjects/cp1.js
   }
 ];
 
