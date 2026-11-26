@@ -16,7 +16,7 @@
 @media(max-width:900px){.home{grid-template-columns:1fr;padding:16px 16px 32px;gap:8px}}
 
 /* ---------- Greeting side ---------- */
-.hello{position:sticky;top:24px;min-height:calc(100vh - 140px);display:flex;flex-direction:column;justify-content:center;padding:40px 36px;border-radius:32px;
+.hello{position:sticky;top:24px;min-height:calc(100vh - 48px);display:flex;flex-direction:column;justify-content:center;padding:40px 36px;border-radius:32px;
   background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;isolation:isolate}
 .hello::before{content:"";position:absolute;inset:0;z-index:-2;opacity:.55;
   background-image:radial-gradient(var(--line) 1.2px,transparent 1.3px);background-size:22px 22px}
@@ -56,14 +56,35 @@
 .hello-stats span{font-size:.85rem;font-weight:800;padding:6px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line)}
 
 /* ---------- Folder shelf ---------- */
-.shelf{padding:26px 8px 16px}
-@media(max-width:900px){.shelf{padding:22px 0 10px}}
+.shelf{display:flex;flex-direction:column;min-height:calc(100vh - 48px);padding:26px 4px 0}
+@media(max-width:900px){.shelf{min-height:0;padding:22px 0 0}}
 .shelf-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 6px 18px}
 .shelf-head h2{font-family:var(--hand);font-weight:400;font-size:2.2rem;line-height:1}
 .shelf-head .hand{font-family:var(--hand);color:var(--muted);font-size:1.15rem}
-.folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,215px),1fr));gap:26px 20px}
-@media(max-width:900px){.folders{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.folders{grid-template-columns:1fr;gap:30px}}
+ /* Folder carousel: one folder at a time, browse with the arrow buttons, arrow keys, dots or a swipe */
+.carousel{flex:1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
+.car-viewport{overflow:hidden;border-radius:24px;touch-action:pan-y}
+.car-track{display:flex;transition:transform .55s cubic-bezier(.3,1.15,.4,1)}
+.slide{flex:0 0 100%;display:flex;justify-content:center;align-items:center;padding:22px 12px 26px}
+.slide .folder{width:min(100%,620px,calc((100vh - 300px) * 1.25))}
+.slide .folder.ghost{aspect-ratio:5/4}
+.slide .folder .label{padding:10px 16px 11px}
+.slide .folder .label b{font-size:1.8rem}
+.slide .folder .label small{font-size:.86rem}
+.slide .folder .label em{font-size:1.05rem}
+.slide .folder .mini{min-width:150px;height:7px}
+.car-btn{width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);color:var(--ink);display:grid;place-items:center;transition:transform .2s,background .2s}
+.car-btn svg{width:24px;height:24px}
+.car-btn:hover{transform:scale(1.08);background:var(--rose-t)}
+.car-btn:active{transform:scale(.95)}
+.car-meta{display:flex;flex-direction:column;align-items:center;gap:6px;margin:2px 0 4px}
+.car-name{font-family:var(--hand);font-size:1.25rem;color:var(--ink)}
+.car-name small{color:var(--muted);font-size:1rem}
+.car-dots{display:flex;justify-content:center;gap:8px}
+.car-dots button{width:10px;height:10px;border-radius:99px;border:0;padding:0;background:var(--line);transition:width .3s,background .3s}
+.car-dots button.on{width:28px;background:var(--rose)}
+@media(max-width:900px){.slide .folder{width:min(100%,460px)}}
+@media(max-width:520px){.carousel{gap:6px}.car-btn{width:42px;height:42px}.slide{padding:16px 4px 20px}.slide .folder .label b{font-size:1.4rem}.slide .folder .mini{min-width:100px}}
 
 .folder{position:relative;display:block;aspect-ratio:5/4;color:inherit;text-decoration:none;perspective:900px;
   animation:popin .6s cubic-bezier(.3,1.5,.5,1) both;animation-delay:var(--d,0ms)}
@@ -103,7 +124,8 @@
 .folder:not(.ghost) .front{background:var(--pat);border:var(--bw,0px) solid transparent}
 :root[data-theme="dark"] .folder:not(.ghost) .front,:root[data-theme="dark"] .folder .backsheet{filter:saturate(.88) brightness(.9)}
 
-footer.home-foot{text-align:center;color:var(--muted);font-family:var(--hand);font-size:1.1rem;padding:6px 16px 28px}
+footer.home-foot{text-align:center;color:var(--muted);font-family:var(--hand);font-size:1.15rem;padding:10px 16px 18px}
+footer.home-foot b{font-weight:400;color:var(--rose-d)}
 @media (prefers-reduced-motion: reduce){.dd,.folder,.hi .name path,.hi .wave{animation:none!important}.hi .name path{stroke-dashoffset:0}}
 </style>
 </head>
@@ -136,12 +158,20 @@ footer.home-foot{text-align:center;color:var(--muted);font-family:var(--hand);fo
   <section class="shelf" aria-labelledby="shelfTitle">
     <div class="shelf-head">
       <h2 id="shelfTitle">my folders</h2>
-      <span class="hand">tap one to open ↓</span>
+      <span class="hand">tap a folder to open · ‹ › to browse</span>
     </div>
-    <div class="folders" id="folders"></div>
+    <div class="carousel" id="carousel">
+      <button class="car-btn" id="carPrev" aria-label="Previous folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="car-viewport" id="carViewport"><div class="car-track" id="folders"></div></div>
+      <button class="car-btn" id="carNext" aria-label="Next folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="car-meta">
+      <div class="car-name" id="carName" aria-live="polite"></div>
+      <div class="car-dots" id="carDots" role="tablist" aria-label="Choose a folder"></div>
+    </div>
+    <footer class="home-foot">made with love for hannah · <b>love, alex</b> ♡</footer>
   </section>
 </div>
-<footer class="home-foot">made with love for hannah ♡</footer>
 
 <script src="subjects/subjects.js"></script>
 <script>
@@ -258,7 +288,42 @@ const html = subjects.map((s, i) => {
     </span></a>`;
 }).join('');
 const ghost = `<div class="folder ghost" style="--d:${120 + subjects.length*90}ms" aria-hidden="true">${BACKSHEET}<span class="front"><span>more folders<br>coming soon 🌱</span></span></div>`;
-document.getElementById('folders').innerHTML = html + ghost;
+/* ---------------- Folder carousel ---------------- */
+const slides = [...html.split('</a>').filter(h => h.trim()).map(h => h + '</a>'), ghost];
+const names = [...subjects.map(s => s.title), 'coming soon'];
+const track = document.getElementById('folders');
+track.innerHTML = slides.map((h, i) => `<div class="slide" role="group" aria-roledescription="slide" aria-label="${i + 1} of ${slides.length}">${h}</div>`).join('');
+document.getElementById('carDots').innerHTML = slides.map((_, i) => `<button role="tab" aria-label="${esc(names[i])}" data-i="${i}"></button>`).join('');
+let carIdx = Math.min(Math.max(store.get('bloom-folder-idx', 0) | 0, 0), slides.length - 1);
+function showFolder(n){
+  carIdx = (n + slides.length) % slides.length;
+  track.style.transform = `translateX(-${carIdx * 100}%)`;
+  [...track.children].forEach((sl, i) => {
+    const on = i === carIdx;
+    sl.setAttribute('aria-hidden', on ? 'false' : 'true');
+    sl.querySelectorAll('a').forEach(a => a.tabIndex = on ? 0 : -1);
+  });
+  document.querySelectorAll('#carDots button').forEach((d, i) => { d.classList.toggle('on', i === carIdx); d.setAttribute('aria-selected', i === carIdx); });
+  document.getElementById('carName').innerHTML = `${esc(names[carIdx])} <small>· ${carIdx + 1} of ${slides.length}</small>`;
+  store.set('bloom-folder-idx', carIdx);
+}
+document.getElementById('carPrev').onclick = () => showFolder(carIdx - 1);
+document.getElementById('carNext').onclick = () => showFolder(carIdx + 1);
+document.getElementById('carDots').onclick = e => { const b = e.target.closest('button'); if(b) showFolder(+b.dataset.i); };
+document.addEventListener('keydown', e => {
+  if(e.target.closest && e.target.closest('input, textarea, select')) return;
+  if(e.key === 'ArrowLeft') showFolder(carIdx - 1);
+  if(e.key === 'ArrowRight') showFolder(carIdx + 1);
+});
+let touchX = null;
+const vp = document.getElementById('carViewport');
+vp.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, {passive: true});
+vp.addEventListener('touchend', e => {
+  if(touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX; touchX = null;
+  if(Math.abs(dx) > 40) showFolder(carIdx + (dx < 0 ? 1 : -1));
+});
+showFolder(carIdx);
 
 document.getElementById('stats').innerHTML =
   `<span>📂 ${subjects.length} folder${subjects.length === 1 ? '' : 's'}</span><span>🌸 ${mastTotal} / ${qTotal} mastered</span>`;
